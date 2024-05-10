@@ -1,0 +1,74 @@
+version: '3'
+services:
+  mongodb:
+    image: bitnami/mongodb:4.4.4-debian-10-r5
+    container_name: mongodb
+    ports:
+      - 27017:27017
+    volumes:
+      - ./src/ratings/databases:/docker-entrypoint-initdb.d
+    networks:
+      - bookinfo-network
+    restart: always
+
+  ratings:
+    build:
+      context: ./src/ratings
+    container_name: ratings
+    ports:
+      - 8000:9080
+    environment:
+      - SERVICE_VERSION=v2
+      - MONGO_DB_URL=mongodb://mongodb:27017/ratings
+    depends_on:
+      - mongodb
+    networks:
+      - bookinfo-network
+    restart: always
+
+  details:
+    build:
+      context: ./src/details
+    container_name: details
+    ports:
+      - 9000:9080
+    networks:
+      - bookinfo-network
+    restart: always
+
+  reviews:
+    build:
+      context: ./src/reviews
+    container_name: reviews
+    ports:
+      - 7000:9080
+    environment:
+      - ENABLE_RATINGS=true
+      - RATINGS_SERVICE=http://ratings:9080
+      - STAR_COLOR=blue
+    networks:
+      - bookinfo-network
+    restart: always
+
+  productpage:
+    build:
+      context: ./src/productpage
+    container_name: productpage
+    ports:
+      - 6000:9080
+    environment:
+      - DETAILS_HOSTNAME=http://details:9080
+      - RATINGS_HOSTNAME=http://ratings:9080
+      - REVIEWS_HOSTNAME=http://reviews:9080
+      - FLOOD_FACTOR=0
+    depends_on:
+      - details
+      - ratings
+      - reviews
+    networks:
+      - bookinfo-network
+    restart: always
+
+networks:
+  bookinfo-network:
+    driver: bridge

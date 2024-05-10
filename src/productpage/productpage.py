@@ -22,6 +22,8 @@ from flask import _request_ctx_stack as stack
 from jaeger_client import Tracer, ConstSampler
 from jaeger_client.reporter import NullReporter
 from jaeger_client.codecs import B3Codec
+from jaeger_client import SpanContext
+from opentracing import tracer
 from opentracing.ext import tags
 from opentracing.propagation import Format
 from opentracing_instrumentation.request_context import get_current_span, span_in_context
@@ -125,13 +127,13 @@ service_dict = {
 # extract/inject context, etc.
 
 # A very basic OpenTracing tracer (with null reporter)
-tracer = Tracer(
-    one_span_per_rpc=True,
-    service_name='productpage',
-    reporter=NullReporter(),
-    sampler=ConstSampler(decision=True),
-    extra_codecs={Format.HTTP_HEADERS: B3Codec()}
-)
+# tracer = Tracer(
+#     one_span_per_rpc=True,
+#     service_name='productpage',
+#     reporter=NullReporter(),
+#     sampler=ConstSampler(decision=True),
+#     extra_codecs={Format.HTTP_HEADERS: B3Codec()}
+# )
 
 
 def trace():
@@ -199,6 +201,7 @@ def getForwardHeaders(request):
             # print "incoming: "+ihdr+":"+val
 
     return headers
+
 
 
 # The UI:
